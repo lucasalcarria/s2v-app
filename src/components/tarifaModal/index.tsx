@@ -9,6 +9,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
+import { useTarifa } from "../../contexts/TarifaContext";
 
 interface TarifaModalProps {
   visible: boolean;
@@ -21,12 +22,13 @@ export function TarifaModal({
   onClose,
   onTarifaCalculated,
 }: TarifaModalProps) {
-  const [teRaw, setTeRaw] = useState("0,290190");
-  const [tusdRaw, setTusdRaw] = useState("0,339820");
-  const [pis, setPis] = useState("0,9700");
-  const [cofins, setCofins] = useState("4,4400");
-  const [icms, setIcms] = useState("19");
-  const [tarifaFinal, setTarifaFinal] = useState("");
+  const { state, dispatch } = useTarifa();
+  const [teRaw, setTeRaw] = useState(state.teRaw);
+  const [tusdRaw, setTusdRaw] = useState(state.tusdRaw);
+  const [pis, setPis] = useState(state.pis);
+  const [cofins, setCofins] = useState(state.cofins);
+  const [icms, setIcms] = useState(state.icms);
+  const [tarifaFinal, setTarifaFinal] = useState(state.tarifaFinal);
 
   const calcularTarifa = () => {
     // Valores padrão
@@ -70,6 +72,20 @@ export function TarifaModal({
     const tarifaFormatada = tarifa.toFixed(2);
 
     setTarifaFinal(tarifaFormatada);
+    
+    // Atualiza o contexto com todos os valores
+    dispatch({
+      type: 'SET_TARIFA',
+      payload: {
+        teRaw,
+        tusdRaw,
+        pis,
+        cofins,
+        icms,
+        tarifaFinal: tarifaFormatada,
+      },
+    });
+    
     onTarifaCalculated(tarifaFormatada);
   };
 
