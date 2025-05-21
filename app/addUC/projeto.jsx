@@ -1,16 +1,7 @@
 import { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
-
-// (importações e início do componente continuam iguais...)
+import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import styles from '@/src/styles/AppStyles'; 
+import NumericInput from '@/src/components/numericInput';
 
 export default function ProjetoTab() {
   const parseNumber = (value: string): number => {
@@ -36,14 +27,14 @@ export default function ProjetoTab() {
   };
 
   const [nModulos, setNModulos] = useState("");
-  const [potModulo, setPotModulo] = useState("");
+  const [potModulo, setPotModulo] = useState("610");
   const [mObra, setMObra] = useState(() => formatCurrency(calcularMaoDeObra()));
   const [mObraFoiEditadaManualmente, setMObraFoiEditadaManualmente] =
     useState(false);
   const [pKit, setPkit] = useState("");
   const [eEnergia, setEEnergia] = useState("");
   const [aImposto, setAImposto] = useState("");
-  const [mCa, setMCa] = useState("");
+  const [mCa, setMCa] = useState("800,00");
   const [dTotal, setDTotal] = useState("");
   const [pComissao, setPComissao] = useState("");
   const [vExtra, setVExtra] = useState("");
@@ -133,63 +124,50 @@ export default function ProjetoTab() {
       >
         <Text style={styles.title}>Simulador de Projeto</Text>
 
-        <View style={styles.card}>
-          <Text style={styles.label}>Número de Módulos</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            value={nModulos}
-            onChangeText={(text) => {
-              // Remove tudo que não é número
+        <NumericInput
+          label="Número de Módulos"
+          value={nModulos}
+          onChangeText={(text) => {
               const somenteNumeros = text.replace(/[^0-9]/g, "");
-              // Se vazio, limpa o campo
               if (somenteNumeros === "") {
                 setNModulos("");
                 return;
               }
-              // Limita a 10000 (sem ponto)
               const valorNumerico = parseInt(somenteNumeros, 10);
               if (isNaN(valorNumerico) || valorNumerico > 1000000) {
                 return;
               }
-              // Formata com ponto como separador de milhar
               const formatado = valorNumerico
                 .toString()
                 .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
               setNModulos(formatado);
             }}
             maxLength={10}
-          />
+          placeholder="0"
+        />
 
-          <Text style={styles.label}>Potência do Módulo</Text>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.inputWithSuffix}
-              keyboardType="numeric"
-              value={potModulo}
-              onChangeText={(text) => {
-                const cleaned = text.replace(/[^0-9]/g, "");
-                const value = parseInt(cleaned, 10);
-                if (!isNaN(value) && value <= 1000) {
-                  setPotModulo(value.toString());
-                } else if (cleaned === "") {
-                  setPotModulo("");
-                }
-              }}
-              placeholderTextColor="#aaa"
-              maxLength={3}
-            />
-            <Text style={styles.suffix}>W</Text>
-          </View>
-          
-          <Text style={styles.label}>Mão de Obra</Text>
-          <View style={styles.inputWrapper}>
-            <Text style={styles.prefix}>R$</Text>
-            <TextInput
-              style={styles.inputWithPrefix}
-              keyboardType="numeric"
-              value={mObra}
-              onChangeText={(value) => {
+        <NumericInput
+          label="Potência do Módulo"
+          suffix="W"
+          value={potModulo}
+          onChangeText={(text) => {
+            const cleaned = text.replace(/[^0-9]/g, "");
+            const value = parseInt(cleaned, 10);
+            if (!isNaN(value) && value <= 1000) {
+              setPotModulo(value.toString());
+            } else if (cleaned === "") {
+              setPotModulo("");
+            }
+          }}
+          placeholder="0"
+          maxLength={3}
+        />
+
+        <NumericInput
+          label="Mão de Obra"
+          prefix="R$"
+          value={mObra}
+          onChangeText={(value) => {
                 setMObraFoiEditadaManualmente(true);
                 const somenteNumeros = value.replace(/\D/g, "");
                 const valorEmReais = (Number(somenteNumeros) / 100).toFixed(2);
@@ -201,94 +179,149 @@ export default function ProjetoTab() {
                 const formatado = `${inteiroComPonto},${decimal}`;
                 setMObra(formatado);
               }}
-              placeholder="0,00"
-              placeholderTextColor="#aaa"
-              maxLength={15}
-            />
-          </View>
+          placeholder="0,00"
+          maxLength={15}
+        />
 
-          <Text style={styles.label}>Preço do Kit (R$)</Text>
-          <View style={styles.inputWrapper}>
-            <Text style={styles.prefix}>R$</Text>
-            <TextInput
-              style={styles.inputWithPrefix}
-              keyboardType="numeric"
-              value={pKit}
-              onChangeText={(value) => {
-                const somenteNumeros = value.replace(/\D/g, ""); // remove tudo que não for número
-                const valorEmReais = (Number(somenteNumeros) / 100).toFixed(2); // divide por 100 para ter duas casas decimais
+        <NumericInput
+          label="Preço do Kit"
+          prefix="R$"
+          value={pKit}
+          onChangeText={(value) => {
+                const somenteNumeros = value.replace(/\D/g, "");
+                const valorEmReais = (Number(somenteNumeros) / 100).toFixed(2);
                 const [inteiro, decimal] = valorEmReais.split(".");
-
-                // adiciona ponto como separador de milhar
                 const inteiroComPonto = inteiro.replace(
                   /\B(?=(\d{3})+(?!\d))/g,
                   "."
                 );
-
                 const formatado = `${inteiroComPonto},${decimal}`;
                 setPkit(formatado);
               }}
-              placeholderTextColor="#aaa"
-              maxLength={15}
-            />
-          </View>
+          placeholder="0,00"
+          maxLength={15}
+        />
 
-          <Text style={styles.label}>Entrada de Energia (R$)</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            value={eEnergia}
-            onChangeText={setEEnergia}
-          />
+        <NumericInput
+          label="Entrada de Energia"
+          prefix="R$"
+          value={eEnergia}
+          onChangeText={(value) => {
+                const somenteNumeros = value.replace(/\D/g, "");
+                const valorEmReais = (Number(somenteNumeros) / 100).toFixed(2);
+                const [inteiro, decimal] = valorEmReais.split(".");
+                const inteiroComPonto = inteiro.replace(
+                  /\B(?=(\d{3})+(?!\d))/g,
+                  "."
+                );
+                const formatado = `${inteiroComPonto},${decimal}`;
+                setEEnergia(formatado);
+              }}
+          placeholder="0,00"
+          maxLength={15}
+        />
 
-          <Text style={styles.label}>Alíquota de Imposto (%)</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            value={aImposto}
-            onChangeText={setAImposto}
-          />
+        <NumericInput
+          label="Alíquota de Imposto"
+          suffix="%"
+          value={aImposto}
+          onChangeText={(text) => {
+                const numeric = text.replace(/\D/g, ""); // remove tudo que não for número
+                const formatted = (Number(numeric) / 100)
+                  .toFixed(2)
+                  .replace(".", ",");
+                setAImposto(formatted);
+              }}
+          placeholder="0,00"
+          maxLength={5}
+        />
 
-          <Text style={styles.label}>Material CA (R$)</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            value={mCa}
-            onChangeText={setMCa}
-          />
+        <NumericInput
+          label="Material CA"
+          prefix="R$"
+          value={mCa}
+          onChangeText={(value) => {
+                const somenteNumeros = value.replace(/\D/g, "");
+                const valorEmReais = (Number(somenteNumeros) / 100).toFixed(2);
+                const [inteiro, decimal] = valorEmReais.split(".");
+                const inteiroComPonto = inteiro.replace(
+                  /\B(?=(\d{3})+(?!\d))/g,
+                  "."
+                );
+                const formatado = `${inteiroComPonto},${decimal}`;
+                setMCa(formatado);
+              }}
+          placeholder="0,00"
+          maxLength={15}
+        />
 
-          <Text style={styles.label}>Deslocamento (R$)</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            value={dTotal}
-            onChangeText={setDTotal}
-          />
+        <NumericInput
+          label="Deslocamento"
+          prefix="R$"
+          value={dTotal}
+          onChangeText={(value) => {
+                const somenteNumeros = value.replace(/\D/g, "");
+                const valorEmReais = (Number(somenteNumeros) / 100).toFixed(2);
+                const [inteiro, decimal] = valorEmReais.split(".");
+                const inteiroComPonto = inteiro.replace(
+                  /\B(?=(\d{3})+(?!\d))/g,
+                  "."
+                );
+                const formatado = `${inteiroComPonto},${decimal}`;
+                setDTotal(formatado);
+              }}
+          placeholder="0,00"
+          maxLength={15}
+        />
 
-          <Text style={styles.label}>Comissão (%)</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            value={pComissao}
-            onChangeText={setPComissao}
-          />
+        <NumericInput
+          label="Comissão"
+          suffix="%"
+          value={pComissao}
+          onChangeText={(text) => {
+                const numeric = text.replace(/\D/g, ""); // remove tudo que não for número
+                const formatted = (Number(numeric) / 100)
+                  .toFixed(2)
+                  .replace(".", ",");
+                setPComissao(formatted);
+              }}
+          placeholder="0,00"
+          maxLength={5}
+        />
 
-          <Text style={styles.label}>Custos Extras (R$)</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            value={vExtra}
-            onChangeText={setVExtra}
-          />
+        <NumericInput
+          label="Custos Extras"
+          prefix="R$"
+          value={vExtra}
+          onChangeText={(value) => {
+                const somenteNumeros = value.replace(/\D/g, "");
+                const valorEmReais = (Number(somenteNumeros) / 100).toFixed(2);
+                const [inteiro, decimal] = valorEmReais.split(".");
+                const inteiroComPonto = inteiro.replace(
+                  /\B(?=(\d{3})+(?!\d))/g,
+                  "."
+                );
+                const formatado = `${inteiroComPonto},${decimal}`;
+                setVExtra(formatado);
+              }}
+          placeholder="0,00"
+          maxLength={15}
+        />
 
-          <Text style={styles.label}>Margem Desejada (%)</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="numeric"
-            value={mDesejada}
-            onChangeText={setMDesejada}
-          />
-        </View>
+        <NumericInput
+          label="Margem Desejada"
+          suffix="%"
+          value={mDesejada}
+          onChangeText={(text) => {
+                const numeric = text.replace(/\D/g, ""); // remove tudo que não for número
+                const formatted = (Number(numeric) / 100)
+                  .toFixed(2)
+                  .replace(".", ",");
+                setMDesejada(formatted);
+              }}
+          placeholder="0,00"
+          maxLength={5}
+        />
 
         <TouchableOpacity style={styles.botao} onPress={calcularPrecoIdealWp}>
           <Text style={styles.botaoTexto}>Calcular Preço de Venda</Text>
@@ -348,116 +381,3 @@ export default function ProjetoTab() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#111",
-    paddingHorizontal: 20,
-    paddingTop: 50,
-  },
-  title: {
-    color: "#fff",
-    fontSize: 22,
-    fontFamily: "Inter-Bold",
-    marginBottom: 20,
-    marginTop: 50,
-    textAlign: "center",
-  },
-  card: {
-    backgroundColor: "#1a1a1a",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: "#333",
-  },
-  label: {
-    color: "#ccc",
-    fontFamily: "Inter",
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  resultadosBox: {
-    backgroundColor: "#1a1a1a",
-    borderRadius: 12,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: "#333",
-    marginTop: 10,
-  },
-  resultadoItem: {
-    marginBottom: 5,
-  },
-  resultadoLabel: {
-    color: "#ccc",
-    fontSize: 14,
-    fontFamily: "Inter",
-  },
-  resultadoValor: {
-    color: "#00d2ff",
-    fontSize: 18,
-    fontFamily: "Inter-Bold",
-  },
-  inputWithPrefix: {
-    flex: 1,
-    paddingVertical: 10,
-    color: "#fff",
-    fontFamily: "Inter",
-    textAlign: "left",
-    fontSize: 16,
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#222",
-    color: "#fff",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: "#444",
-    marginBottom: 12,
-  },
-  input: {
-    backgroundColor: "#222",
-    color: "#fff",
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: "#444",
-    marginBottom: 12,
-  },
-  prefix: {
-    color: "#ffffff",
-    fontFamily: "Inter",
-    marginRight: 4,
-    fontSize: 16,
-  },
-  botao: {
-    backgroundColor: "#00949A",
-    borderRadius: 12,
-    padding: 16,
-    alignItems: "center",
-  },
-  botaoTexto: {
-    color: "#fff",
-    fontSize: 16,
-    fontFamily: "Inter-Bold",
-  },
-  inputWithSuffix: {
-    flex: 1,
-    paddingVertical: 10,
-    color: "#fff",
-    fontFamily: "Inter",
-    textAlign: "left",
-    fontSize: 16,
-  },
-  suffix: {
-    color: "#ffffff",
-    fontFamily: "Inter",
-    marginLeft: 4,
-    fontSize: 16,
-  },
-});

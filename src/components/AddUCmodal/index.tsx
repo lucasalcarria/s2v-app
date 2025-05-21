@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+ import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,9 +7,14 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
-import { TarifaModal } from "../tarifaModal"; // ajuste esse path conforme necessário
+import { TarifaModal } from "../tarifaModal";
+import { useUCStore } from "../../store/ucStore"; // Importando o store
+import uuid from 'react-native-uuid';
 
 export function AddUcModal({ handleClose, onSave, initialData }: any) {
+  const addUC = useUCStore((state) => state.addUC);
+  const updateUC = useUCStore((state) => state.updateUC);
+  const id = uuid.v4();
   const [modalVisible, setModalVisible] = useState(false);
   const [numeroUC, setNumeroUC] = useState("");
   const [tipoUc, setTipoUc] = useState("Geradora");
@@ -18,26 +23,6 @@ export function AddUcModal({ handleClose, onSave, initialData }: any) {
   const [iluminacao, setIluminacao] = useState("");
   const [consumos, setConsumos] = useState(Array(12).fill(""));
   const [tarifaFinal, setTarifaFinal] = useState("");
-
-  const calcularTarifaPadrao = () => {
-    const te = 0.29019;
-    const tusd = 0.33982;
-    const pis = 0.0097;
-    const cofins = 0.0444;
-    const icms = 0.19;
-
-    const denominador = (1 - icms) * (1 - (pis + cofins));
-    const teComImposto = te / denominador;
-    const tusdComImposto = tusd / denominador;
-    const tarifa = teComImposto + tusdComImposto;
-
-    return tarifa.toFixed(2);
-  };
-
-  useEffect(() => {
-    const tarifaInicial = calcularTarifaPadrao();
-    setTarifaFinal(tarifaInicial);
-  }, []);
 
   useEffect(() => {
     if (initialData) {
@@ -61,7 +46,8 @@ export function AddUcModal({ handleClose, onSave, initialData }: any) {
   };
 
   const salvar = () => {
-    const data = {
+    const ucData = {
+      id: initialData?.id || uuid.v4(), // Mantém o id existente ou gera novo
       numeroUC,
       tipoUc,
       fornecimento,
@@ -70,8 +56,15 @@ export function AddUcModal({ handleClose, onSave, initialData }: any) {
       consumos,
       tarifaFinal,
     };
-    onSave(data);
+
+    if (initialData) {
+      updateUC(ucData.id, ucData);
+    } else {
+      addUC(ucData);
+    }
+
     handleClose();
+    onSave?.(ucData);
   };
 
   const renderizarCamposConsumo = () => {
@@ -177,20 +170,18 @@ export function AddUcModal({ handleClose, onSave, initialData }: any) {
               </View>
 
               <View style={{ alignItems: "flex-end" }}>
-                <TouchableOpacity
-                  style={[styles.utilBtn, { backgroundColor: "#70a1d7" }]}
-                  onPress={() => setModalVisible(true)}
-                >
-                  <Text style={styles.utilBtnText}>Calcular Tarifa</Text>
-                </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.utilBtn, { backgroundColor: "#70a1d7" }]}
+                onPress={() => setModalVisible(true)}
+              >
+                <Text style={styles.utilBtnText}>Calcular Tarifa</Text>
+              </TouchableOpacity>
 
-                {tarifaFinal !== "" && (
-                  <Text
-                    style={[styles.label, { marginTop: 6 }, { fontSize: 12 }]}
-                  >
-                    Tarifa Final: R$ {parseFloat(tarifaFinal).toFixed(2)}
-                  </Text>
-                )}
+              {tarifaFinal !== "" && (
+                <Text style={[styles.label, { marginTop: 6 }, { fontSize: 12 }]}>
+                  Tarifa Final: R$ {parseFloat(tarifaFinal).toFixed(2)}
+                </Text>
+              )}
               </View>
             </View>
           </View>
@@ -274,7 +265,6 @@ export function AddUcModal({ handleClose, onSave, initialData }: any) {
         </ScrollView>
       </View>
 
-      {/* TarifaModal integrado aqui */}
       <TarifaModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}

@@ -67,10 +67,10 @@ export function TarifaModal({
     const tusdComImposto = tusdValor / denominador;
 
     const tarifa = teComImposto + tusdComImposto;
-    const tarifaFormatada = tarifa.toFixed(2);
+    const tarifaFormatada = tarifa.toFixed(6);
 
     setTarifaFinal(tarifaFormatada);
-    onTarifaCalculated(tarifaFormatada);
+    onTarifaCalculated(tarifaFormatada,);
   };
 
   return (

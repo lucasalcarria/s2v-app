@@ -1,7 +1,7 @@
 import { Text, View, StyleSheet, TouchableOpacity, Modal } from "react-native";
 import { useState } from "react";
 import { useFonts } from "expo-font";
-import Logo from "../../assets/images/logo.svg";
+import Logo from "@/assets/images/logo.svg";
 import { ModalWindow } from "../../components/modal";
 
 export function Home() {
@@ -9,7 +9,7 @@ export function Home() {
   const [nomeClienteValue, setNomeClienteValue] = useState("");
 
   const [fontsLoaded] = useFonts({
-    "Inter-Bold": require("../../assets/fonts/Inter_24pt-Bold.ttf"),
+    "Inter-Bold": require("../../styles/fonts/Inter_24pt-Bold.ttf"),
   });
 
   if (!fontsLoaded) {
