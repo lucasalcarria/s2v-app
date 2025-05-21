@@ -7,15 +7,16 @@ import NumericInput from '@/src/components/numericInput';
 export default function Dimensionamento() {
   const { consumoTotal } = useUCStore();
   const [potenciaModulo, setPotenciaModulo] = useState("610");
-  const [HSP, setHSP] = useState("4");
+  const [HSP, setHSP] = useState("4,0"); // Valor inicial com decimal para indicar que aceita decimais
   const [numModulos, setNumModulos] = useState(0);
   const [geracaoEstimativa, setGeracaoEstimativa] = useState(0);
   const [percentualAbatimento, setPercentualAbatimento] = useState(0);
   const [potenciaFV, setPotenciaFV] = useState(0);
 
   useEffect(() => {
-    const hspNum = parseFloat(HSP);
-    const potenciaModuloNum = parseFloat(potenciaModulo);
+    // Converter HSP para número, substituindo vírgula por ponto se necessário
+    const hspNum = parseFloat(HSP.replace(',', '.'));
+    const potenciaModuloNum = parseFloat(potenciaModulo.replace(',', '.'));
 
     if (
       !consumoTotal ||
@@ -52,6 +53,14 @@ export default function Dimensionamento() {
     const inteiraFormatada = inteira.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     return `${inteiraFormatada},${decimal}`;
   };
+
+  const handleHSPChange = (value: string) => {
+  // Verifica se o valor é um número válido (incluindo decimais com ponto ou vírgula)
+  const isValid = /^[0-9]*[,.]?[0-9]*$/.test(value);
+  if (isValid) {
+    setHSP(value);
+  }
+};
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -90,7 +99,7 @@ export default function Dimensionamento() {
             const formatted = (Number(somenteNumeros)/10).toFixed(1);
             const [inteiro, decimal] = formatted.split(".");
             const formatado = `${inteiro},${decimal}`;
-            setHSP(formatado);
+            handleHSPChange(formatado);
           }}
           maxLength={4}
           placeholder="0,0"
