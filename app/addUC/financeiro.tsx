@@ -1,10 +1,16 @@
 import { useState, useEffect } from "react";
 import { View, Text, TextInput, ScrollView } from "react-native";
 import { useUCStore } from "@/src/store/ucStore";
+import { useTarifaStore } from "@/src/store/tarifaStore";
 import styles from '@/src/styles/AppStyles';
 
 export default function FaturaSolarScreen() {
   const ucs = useUCStore((state) => state.ucs); // 💡 SEMPRE assim para manter reatividade
+  const te = useTarifaStore((state) => state.teRaw);
+  const tusd = useTarifaStore((state) => state.tusdRaw);
+  const pis = useTarifaStore((state) => state.pis);
+  const cofins = useTarifaStore((state) => state.cofins);
+  const icms = useTarifaStore((state) => state.icms);
   const [escalonamento, setEscalonamento] = useState("45");
   const [valorFioB, setValorFioB] = useState("153,09");
 

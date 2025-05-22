@@ -9,6 +9,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";
+import { useTarifaStore } from "@/src/store/tarifaStore";
 
 interface TarifaModalProps {
   visible: boolean;
@@ -21,12 +22,19 @@ export function TarifaModal({
   onClose,
   onTarifaCalculated,
 }: TarifaModalProps) {
-  const [teRaw, setTeRaw] = useState("0,290190");
-  const [tusdRaw, setTusdRaw] = useState("0,339820");
-  const [pis, setPis] = useState("0,9700");
-  const [cofins, setCofins] = useState("4,4400");
-  const [icms, setIcms] = useState("19");
-  const [tarifaFinal, setTarifaFinal] = useState("");
+  const [tarifaFinal, setTarifaFinal] = useState("");  
+  const {
+    teRaw,
+    tusdRaw,
+    pis,
+    cofins,
+    icms,
+    setTeRaw,
+    setTusdRaw,
+    setPis,
+    setCofins,
+    setIcms,
+  } = useTarifaStore();
 
   const calcularTarifa = () => {
     // Valores padrão
@@ -70,7 +78,7 @@ export function TarifaModal({
     const tarifaFormatada = tarifa.toFixed(6);
 
     setTarifaFinal(tarifaFormatada);
-    onTarifaCalculated(tarifaFormatada,);
+    onTarifaCalculated(tarifaFormatada);
   };
 
   return (
