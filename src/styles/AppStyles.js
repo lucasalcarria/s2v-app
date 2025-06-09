@@ -217,6 +217,27 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     color: Colors.textPrimary,
   },
+  webviewContainer: {
+    width: '90%',
+    aspectRatio: 210 / 297,
+    alignSelf: 'center',
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: Colors.backgroundSecondary,
+  },
+
+  webview: {
+    flex: 1,
+  },
+
+
+  buttons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 12,
+    borderTopWidth: 1,
+    borderColor: Colors.borderDark,
+  },
 });
 
 export default styles;
