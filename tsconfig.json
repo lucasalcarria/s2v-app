@@ -15,5 +15,5 @@
     "expo-env.d.ts",
     "src/components", 
     "src/custom.d.ts"
-, "App.js"  ]
+, "App.js", "app/addUC/projeto.jsx"  ]
 }

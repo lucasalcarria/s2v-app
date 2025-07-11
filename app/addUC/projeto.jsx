@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from "react-native";
 import styles from '@/src/styles/AppStyles'; 
 import NumericInput from '@/src/components/numericInput';
+import { apiFetch } from "@/src/utils/api";
+import { useUCStore } from "@/src/store/ucStore";
 
 export default function ProjetoTab() {
   const parseNumber = (value: string): number => {
@@ -40,6 +42,9 @@ export default function ProjetoTab() {
   const [vExtra, setVExtra] = useState("");
   const [mDesejada, setMDesejada] = useState("");
   const [precoWpManual, setPrecoWpManual] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  const ucs = useUCStore((state) => state.ucs);
 
   useEffect(() => {
     if (!mObraFoiEditadaManualmente) {
@@ -57,58 +62,66 @@ export default function ProjetoTab() {
     mTotal: 0,
   });
 
-  const calcularPrecoIdealWp = () => {
-    const nMod = parseInt(nModulos.replace(/\./g, ""), 10) || 0;
-    const pMod = parseNumber(potModulo);
-    const maoDeObraNumerico =
-      parseFloat(mObra.replace(/\./g, "").replace(",", ".")) || 0;
-    const kit = parseFloat(pKit.replace(/\./g, "").replace(",", "."));
-    const energia = parseNumber(eEnergia);
-    const impostoPerc = parseNumber(aImposto) / 100;
-    const ca = parseNumber(mCa);
-    const d = parseNumber(dTotal);
-    const comissaoPerc = parseNumber(pComissao) / 100;
-    const extra = parseNumber(vExtra);
-    const margemPerc = parseNumber(mDesejada) / 100;
-
-    const pFotovoltaica = (nMod * pMod) / 1000;
-    const pFotovoltaicaW = pFotovoltaica * 1000;
-    const custosFixos = kit + maoDeObraNumerico + energia + ca + d + extra;
-
-    if (pFotovoltaicaW === 0) return;
-
-    let pWp = 1;
-    let margemObtida = 0;
-    let maxIteracoes = 10000;
-    let iteracoes = 0;
-
-    while (true) {
-      const pVenda = pWp * pFotovoltaicaW;
-      const vComissao = comissaoPerc * pVenda;
-      const iTotal = impostoPerc * (pVenda - kit);
-      const cTotal = custosFixos + vComissao + iTotal;
-      margemObtida = (pVenda - cTotal) / pVenda;
-
-      const erro = margemObtida - margemPerc;
-
-      if (Math.abs(erro) < 0.000001 || iteracoes > maxIteracoes) {
-        const resultadoFinal = {
-          pFotovoltaica,
-          pWp,
-          pVenda,
-          vComissao,
-          iTotal,
-          cTotal,
-          mTotal: margemObtida,
-        };
-
-        setResultado(resultadoFinal);
-        setPrecoWpManual(pWp);
-        break;
-      }
-
-      pWp -= erro * 5;
-      iteracoes++;
+  const calcularPrecoIdealWp = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        clientName: "Nome do Cliente",
+        clientState: "Estado",
+        clientCity: "Cidade",
+        clientAddress: "Endereço",
+        bills: ucs.map((uc) => ({
+          uc: Number(uc.numeroUC),
+          ucType: uc.tipoUc,
+          supplyType: uc.fornecimento,
+          tariff: parseFloat(uc.tarifaFinal.replace(",", ".")) || 0,
+          nighttimeConsumption: parseFloat(uc.consumoNoturno) || 0,
+          publicLighting: parseFloat(uc.iluminacao.replace(",", ".")) || 0,
+          detailedConsumption: {
+            jan: Number(uc.consumos[0] || 0),
+            feb: Number(uc.consumos[1] || 0),
+            mar: Number(uc.consumos[2] || 0),
+            apr: Number(uc.consumos[3] || 0),
+            may: Number(uc.consumos[4] || 0),
+            jun: Number(uc.consumos[5] || 0),
+            jul: Number(uc.consumos[6] || 0),
+            aug: Number(uc.consumos[7] || 0),
+            sep: Number(uc.consumos[8] || 0),
+            oct: Number(uc.consumos[9] || 0),
+            nov: Number(uc.consumos[10] || 0),
+            dec: Number(uc.consumos[11] || 0),
+          },
+        })),
+        modulesNumber: parseInt(nModulos.replace(/\./g, ""), 10) || 0,
+        modulesPower: parseNumber(potModulo),
+        labor: parseFloat(mObra.replace(/\./g, "").replace(",", ".")) || 0,
+        kitValue: parseFloat(pKit.replace(/\./g, "").replace(",", ".")),
+        powerInput: parseNumber(eEnergia),
+        taxRate: parseNumber(aImposto) / 100,
+        materialAc: parseNumber(mCa),
+        travel: parseNumber(dTotal),
+        commission: parseNumber(pComissao) / 100,
+        extraCosts: parseNumber(vExtra),
+        profitMargin: parseNumber(mDesejada) / 100,
+      };
+      const result = await apiFetch("/projects", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      setResultado({
+        pFotovoltaica: result.photovoltaicPower,
+        pWp: Number(result.pricePerWp).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        pVenda: result.salePrice,
+        vComissao: result.commissionValue,
+        iTotal: result.totalTax,
+        cTotal: result.totalCost,
+        mTotal: result.margin,
+      });
+      setPrecoWpManual(Number(result.pricePerWp) || 1);
+    } catch (e) {
+      Alert.alert("Erro", e.message || "Erro ao calcular preço de venda");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -323,8 +336,12 @@ export default function ProjetoTab() {
           maxLength={5}
         />
 
-        <TouchableOpacity style={styles.botao} onPress={calcularPrecoIdealWp}>
-          <Text style={styles.botaoTexto}>Calcular Preço de Venda</Text>
+        <TouchableOpacity style={styles.botao} onPress={calcularPrecoIdealWp} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.botaoTexto}>Calcular Preço de Venda</Text>
+          )}
         </TouchableOpacity>
 
         <View style={styles.resultadosBox}>
@@ -338,7 +355,7 @@ export default function ProjetoTab() {
           <Text style={styles.resultadoItem}>
             <Text style={styles.resultadoLabel}>Preço por Wp: </Text>
             <Text style={styles.resultadoValor}>
-              {resultado.pWp.toFixed(6)} R$/Wp
+              {resultado.pWp} R$/Wp
             </Text>
           </Text>
 

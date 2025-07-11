@@ -8,8 +8,11 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
   Keyboard,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useTarifaStore } from "@/src/store/tarifaStore";
+import { apiFetch } from "../../utils/api";
 
 interface TarifaModalProps {
   visible: boolean;
@@ -22,7 +25,8 @@ export function TarifaModal({
   onClose,
   onTarifaCalculated,
 }: TarifaModalProps) {
-  const [tarifaFinal, setTarifaFinal] = useState("");  
+  const [tarifaFinal, setTarifaFinal] = useState("");
+  const [loading, setLoading] = useState(false);
   const {
     teRaw,
     tusdRaw,
@@ -36,49 +40,29 @@ export function TarifaModal({
     setIcms,
   } = useTarifaStore();
 
-  const calcularTarifa = () => {
-    // Valores padrão
-    const tePadrao = 0.29019;
-    const tusdPadrao = 0.33982;
-    const pisPadrao = 0.97 / 100;
-    const cofinsPadrao = 4.44 / 100;
-    const icmsPadrao = 19 / 100;
+  const calcularTarifa = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        teNoTax: parseFloat(teRaw.replace(",", ".")) || 0,
+        tusdNoTax: parseFloat(tusdRaw.replace(",", ".")) || 0,
+        pis: parseFloat(pis.replace(",", ".")) / 100 || 0,
+        cofins: parseFloat(cofins.replace(",", ".")) / 100 || 0,
+        icms: parseFloat(icms.replace(",", ".")) / 100 || 0,
+      };
 
-    // TE
-    const teValor = teRaw.trim()
-      ? parseFloat(teRaw.replace(",", ".")) || 0
-      : tePadrao;
+      const result = await apiFetch<number>("/tariff", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
 
-    // TUSD
-    const tusdValor = tusdRaw.trim()
-      ? parseFloat(tusdRaw.replace(",", ".")) || 0
-      : tusdPadrao;
-
-    // PIS
-    const pisValor = pis.trim()
-      ? parseFloat(pis.replace(",", ".")) / 100 || 0
-      : pisPadrao;
-
-    // COFINS
-    const cofinsValor = cofins.trim()
-      ? parseFloat(cofins.replace(",", ".")) / 100 || 0
-      : cofinsPadrao;
-
-    // ICMS
-    const icmsValor = icms.trim()
-      ? parseFloat(icms.replace(",", ".")) / 100 || 0
-      : icmsPadrao;
-
-    const denominador = (1 - icmsValor) * (1 - (pisValor + cofinsValor));
-
-    const teComImposto = teValor / denominador;
-    const tusdComImposto = tusdValor / denominador;
-
-    const tarifa = teComImposto + tusdComImposto;
-    const tarifaFormatada = tarifa.toFixed(6);
-
-    setTarifaFinal(tarifaFormatada);
-    onTarifaCalculated(tarifaFormatada);
+      setTarifaFinal(result.toFixed(6));
+      onTarifaCalculated(result.toFixed(6));
+    } catch (e: any) {
+      Alert.alert("Erro", e.message || "Erro ao calcular tarifa");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -204,8 +188,12 @@ export function TarifaModal({
               <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
                 <Text style={styles.btnText}>Cancelar</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.calcBtn} onPress={calcularTarifa}>
-                <Text style={styles.btnText}>Calcular</Text>
+              <TouchableOpacity style={styles.calcBtn} onPress={calcularTarifa} disabled={loading}>
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.btnText}>Calcular</Text>
+                )}
               </TouchableOpacity>
             </View>
 

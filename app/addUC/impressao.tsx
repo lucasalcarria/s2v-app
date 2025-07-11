@@ -3,7 +3,7 @@ import { View, Button, StyleSheet, Alert, ActivityIndicator, Text } from "react-
 import { WebView } from "react-native-webview";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system";
-import jsPDF from "jspdf";
+// import jsPDF from "jspdf";
 
 export default function PropostaPdfScreen() {
   const webViewRef = useRef<WebView>(null);
