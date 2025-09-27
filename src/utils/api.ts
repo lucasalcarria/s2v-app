@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://ruby-belkin-element-integrating.trycloudflare.com/";
+const API_BASE_URL = "https://knit-cup-span-prescription.trycloudflare.com/";
 
 export async function apiFetch<T>(
   endpoint: string,
