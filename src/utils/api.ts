@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://combined-learn-sink-improving.trycloudflare.com/";
+const API_BASE_URL = "https://enable-region-gonna-meaning.trycloudflare.com/";
 
 export async function apiFetch<T>(
   endpoint: string,
