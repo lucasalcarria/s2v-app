@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://burning-sim-ice-shelf.trycloudflare.com/";
+const API_BASE_URL = "https://voting-graphics-amber-contribution.trycloudflare.com/";
 
 export async function apiFetch<T>(
   endpoint: string,
