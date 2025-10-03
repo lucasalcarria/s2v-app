@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://rubber-pit-knife-teaching.trycloudflare.com/";
+const API_BASE_URL = "https://elect-tube-legislative-casting.trycloudflare.com/";
 
 export async function apiFetch<T>(
   endpoint: string,
